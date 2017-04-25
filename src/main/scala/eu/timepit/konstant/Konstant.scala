@@ -4,20 +4,26 @@ import scala.meta._
 
 object Konstant {
 
+  // change to Either[String, Any] and return error msg on the Left
+
   def compileTimeConstant(term: Term): Option[Any] =
     term match {
-      case Lit(value) => Some(value)
+        // TODO: Set, Vector, Map, Option, Array, Function0
+      case Lit(value) =>
+        Some(value)
+
       case q"(..$xs)" =>
-        val cls = Class.forName("scala.Tuple" + xs.size)
         val args = xs.map(argToTerm).map(compileTimeConstant)
-        sequence(args.toList).map(xss =>
-          cls.getConstructors.apply(0).newInstance(xss.map(_.asInstanceOf[Object]): _*))
-      case q"List.empty" | q"Nil" => Some(List())
+        sequence(args).map(seqToTuple)
+
+      case q"List.empty" | q"Nil" =>
+        Some(List())
+
       case q"List(..$xs)" =>
         val args = xs.map(argToTerm).map(compileTimeConstant)
-        sequence(args.toList)
+        sequence(args)
+
       case _ =>
-        println(term.structure)
         None
     }
 
@@ -26,39 +32,15 @@ object Konstant {
       case term: Term => term
     }
 
-  def sequence[A](list: List[Option[A]]): Option[List[A]] =
-    list.foldRight(Option(List.empty[A])) { (optA, optAs) =>
+  def seqToTuple(list: Seq[Any]): Product = {
+    val clazz = Class.forName(s"scala.Tuple${list.size}")
+    val ctor = clazz.getConstructors.apply(0)
+    val objects = list.map(_.asInstanceOf[Object])
+    ctor.newInstance(objects: _*).asInstanceOf[Product]
+  }
+
+  def sequence[A](seq: Seq[Option[A]]): Option[Seq[A]] =
+    seq.foldRight(Option(List.empty[A])) { (optA, optAs) =>
       optA.flatMap(a => optAs.map(a :: _))
     }
-
-  /*
-
-  def compileTimeConstant[T](t: c.Expr[T]): Option[T] =
-    t.tree match {
-      case Literal(Constant(value)) => Some(value.asInstanceOf[T])
-      case x if isCompileTimeConstant(x) => Some(eval(t))
-      case _ => None
-    }
-
-  def isCompileTimeConstant(t: Tree): Boolean =
-    t match {
-      case q"immutable.this.Nil" => true
-      case q"$term.apply[$tpe](..$args)" =>
-        standardCollections.exists(_ equalsStructure term) && args.forall(isLiteralConstant)
-      case _ => false
-    }
-
-  val standardCollections: List[Tree] = List(
-    q"immutable.this.List",
-    q"scala.this.Predef.Set",
-    q"scala.`package`.Vector",
-    q"scala.collection.immutable.List",
-    q"scala.collection.immutable.Set",
-    q"scala.collection.immutable.Vector"
-  )
-
-  def isLiteralConstant(t: Tree): Boolean =
-    PartialFunction.cond(t) { case Literal(Constant(_)) => true }
-
- */
 }

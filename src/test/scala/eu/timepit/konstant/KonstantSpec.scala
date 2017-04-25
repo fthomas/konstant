@@ -14,9 +14,13 @@ class KonstantSpec extends Properties("Konstant") {
   def nonConstant(term: Term): Prop =
     secure(compileTimeConstant(term) ?= None)
 
+  property("()") = isConstant(q"()", ())
+
   property("1") = isConstant(q"1", 1)
 
   property("3.14") = isConstant(q"3.14", 3.14)
+
+  property(""" "hello" """) = isConstant(q""" "hello" """, "hello")
 
   property("List(1)") = isConstant(q"List(1)", List(1))
 
@@ -55,6 +59,10 @@ class KonstantSpec extends Properties("Konstant") {
   property("List.empty") = isConstant(q"List.empty", List.empty)
 
   property("(1, 2)") = isConstant(q"(1, 2)", (1, 2))
+
+  property("""(1, "2", 3.0)""") = isConstant(q"""(1, "2", 3.0)""", (1, "2", 3.0))
+
+  //property("0 -> 1") = isConstant(q"0 -> 1", 0 -> 1)
 
   //property("Some(value = 1)") = isConstant(q"Some(value = 1)", Some(value = 1))
 
