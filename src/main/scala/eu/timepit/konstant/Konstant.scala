@@ -4,16 +4,21 @@ import scala.meta._
 
 object Konstant {
 
-  // TODO: always prefix with _root_
-
   def compileTimeConstant(term: Term): Option[Any] =
     term match {
       case Lit(value) => Some(value)
-      case q"List()" | q"List.empty" | q"Nil" => Some(List())
+      case q"(..$xs)" =>
+        val cls = Class.forName("scala.Tuple" + xs.size)
+        val args = xs.map(argToTerm).map(compileTimeConstant)
+        sequence(args.toList).map(xss =>
+          cls.getConstructors.apply(0).newInstance(xss.map(_.asInstanceOf[Object]): _*))
+      case q"List.empty" | q"Nil" => Some(List())
       case q"List(..$xs)" =>
         val args = xs.map(argToTerm).map(compileTimeConstant)
         sequence(args.toList)
-      case _ => None
+      case _ =>
+        println(term.structure)
+        None
     }
 
   def argToTerm(arg: Term.Arg): Term =

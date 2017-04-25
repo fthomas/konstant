@@ -52,13 +52,11 @@ class KonstantSpec extends Properties("Konstant") {
     compileTimeConstant(term) != Some(value)
   }
 
-  property("List.empty") = secure {
-    val term = "List.empty".parse[Term].get
-    val value = List.empty
-    compileTimeConstant(term) ?= Some(value)
-  }
+  property("List.empty") = isConstant(q"List.empty", List.empty)
 
-  property("Some(value = 1)") = isConstant(q"Some(value = 1)", Some(value = 1))
+  property("(1, 2)") = isConstant(q"(1, 2)", (1, 2))
+
+  //property("Some(value = 1)") = isConstant(q"Some(value = 1)", Some(value = 1))
 
   property("x") = nonConstant(q"x")
 
