@@ -1,12 +1,10 @@
 package eu.timepit.konstant
 
-import eu.timepit.konstant.Konstant._
 import org.scalacheck.Prop._
 import org.scalacheck.{Prop, Properties}
-
 import scala.meta._
 
-class KonstantSpec extends Properties("Konstant") {
+class PackageSpec extends Properties("konstant") {
 
   def isConstant[T](term: Term, value: T): Prop =
     secure(compileTimeConstant(term) ?= Some(value))
@@ -20,27 +18,15 @@ class KonstantSpec extends Properties("Konstant") {
 
   property("3.14") = isConstant(q"3.14", 3.14)
 
-  property(""" "hello" """) = isConstant(q""" "hello" """, "hello")
+  property(""""hello"""") = isConstant(q""""hello"""", "hello")
 
   property("List(1)") = isConstant(q"List(1)", List(1))
 
-  property("List(2)") = secure {
-    val term = "List(2)".parse[Term].get
-    val value = List(2)
-    compileTimeConstant(term) ?= Some(value)
-  }
+  property("List(2)") = isConstant(q"List(2)", List(2))
 
-  property("List(1, 2, 3)") = secure {
-    val term = "List(1, 2, 3)".parse[Term].get
-    val value = List(1, 2, 3)
-    compileTimeConstant(term) ?= Some(value)
-  }
+  property("List(1, 2, 3)") = isConstant(q"List(1, 2, 3)", List(1, 2, 3))
 
-  property("List()") = secure {
-    val term = "List()".parse[Term].get
-    val value = List()
-    compileTimeConstant(term) ?= Some(value)
-  }
+  property("List()") = isConstant(q"List()", List())
 
   property("Nil") = secure {
     val term = "Nil".parse[Term].get

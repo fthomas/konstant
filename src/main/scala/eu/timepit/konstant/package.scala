@@ -1,14 +1,13 @@
-package eu.timepit.konstant
+package eu.timepit
 
 import scala.meta._
 
-object Konstant {
+package object konstant {
 
   // change to Either[String, Any] and return error msg on the Left
-
   def compileTimeConstant(term: Term): Option[Any] =
     term match {
-        // TODO: Set, Vector, Map, Option, Array, Function0
+      // TODO: Set, Vector, Map, Option, Array, Function0
       case Lit(value) =>
         Some(value)
 
@@ -27,19 +26,19 @@ object Konstant {
         None
     }
 
-  def argToTerm(arg: Term.Arg): Term =
+  private def argToTerm(arg: Term.Arg): Term =
     arg match {
       case term: Term => term
     }
 
-  def seqToTuple(list: Seq[Any]): Product = {
+  private def seqToTuple(list: Seq[Any]): Product = {
     val clazz = Class.forName(s"scala.Tuple${list.size}")
     val ctor = clazz.getConstructors.apply(0)
     val objects = list.map(_.asInstanceOf[Object])
     ctor.newInstance(objects: _*).asInstanceOf[Product]
   }
 
-  def sequence[A](seq: Seq[Option[A]]): Option[Seq[A]] =
+  private def sequence[A](seq: Seq[Option[A]]): Option[Seq[A]] =
     seq.foldRight(Option(List.empty[A])) { (optA, optAs) =>
       optA.flatMap(a => optAs.map(a :: _))
     }
